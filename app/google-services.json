@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1073879252933",
+    "firebase_url": "https://moonlit-web-262409.firebaseio.com",
+    "project_id": "moonlit-web-262409",
+    "storage_bucket": "moonlit-web-262409.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073879252933:android:03534e0868c98ade73d5ac",
+        "android_client_info": {
+          "package_name": "com.kenansoylu.socialmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1073879252933-q6bab1keovdpab724jahr7lmrdv9aiur.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2tvmScPB6GAmvtEdQiyQn2MeutDOPT-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1073879252933-q6bab1keovdpab724jahr7lmrdv9aiur.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
