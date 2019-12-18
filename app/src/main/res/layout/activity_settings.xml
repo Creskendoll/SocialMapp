@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/blueBg"
+    android:layout_height="match_parent"
+    tools:context=".activities.SettingsActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:text="Pick default marker color" />
+
+    <com.skydoves.colorpickerview.ColorPickerView
+        android:id="@+id/colorPickerView"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        app:palette="@drawable/palette"
+        app:selector="@drawable/wheel" />
+
+    <TextView
+        android:textSize="20sp"
+        android:id="@+id/colorHex"
+        tools:text="#123123"
+        android:gravity="center"
+        android:layout_margin="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/colorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:background="#AAA"
+        android:minHeight="80dp"
+        android:minWidth="80dp" />
+
+    <Button
+        android:id="@+id/updateBtn"
+        android:layout_margin="20dp"
+        android:text="Update"
+        android:background="@drawable/round_button_green"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

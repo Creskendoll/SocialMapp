@@ -8,7 +8,19 @@
     android:background="@color/blueBg"
     android:gravity="center"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
+
+    <TextView
+        android:id="@+id/nameTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginBottom="50dp"
+        android:textSize="30sp"
+        tools:visibility="visible"
+        android:visibility="gone"
+        tools:text="NAME" />
+
 
     <Button
         android:id="@+id/mapBtn"
@@ -18,7 +30,7 @@
         android:width="200dp"
         android:height="80dp"
         android:background="@drawable/round_button_green"
-        android:text="MApp"/>
+        android:text="Map"/>
 
     <Button
         android:id="@+id/settingsBtn"
@@ -27,6 +39,8 @@
         android:layout_margin="10dp"
         android:width="200dp"
         android:height="80dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:background="@drawable/round_button_blue"
         android:text="Settings"/>
 
@@ -37,9 +51,10 @@
         android:layout_margin="10dp"
         android:width="200dp"
         android:height="80dp"
+        tools:visibility="visible"
         android:background="@drawable/round_button_red"
         android:text="Sign Out"
-        android:visibility="visible" />
+        android:visibility="gone" />
 
 
 </LinearLayout>

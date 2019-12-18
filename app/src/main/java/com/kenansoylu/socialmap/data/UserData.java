@@ -1,4 +1,4 @@
-package com.kenansoylu.socialmap;
+package com.kenansoylu.socialmap.data;
 
 public class UserData {
     private String name;
