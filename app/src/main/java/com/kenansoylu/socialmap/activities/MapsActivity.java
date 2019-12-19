@@ -11,7 +11,10 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +24,8 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -32,9 +37,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.kenansoylu.socialmap.R;
 import com.kenansoylu.socialmap.data.PinData;
+import com.kenansoylu.socialmap.misc.DrawableHelper;
 import com.kenansoylu.socialmap.services.DBService;
+import com.kenansoylu.socialmap.services.SPService;
 
 import java.util.Map;
+
+import io.opencensus.internal.Utils;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -42,6 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DBService service = new DBService();
     private final int LOCATION_PERMISSION = 10;
     private String userID;
+    private SPService spService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +61,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        spService = new SPService(getApplicationContext());
 
         userID = getIntent().getStringExtra("user_id");
     }
@@ -67,6 +79,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .setMessage("Konum Hizmetini Açmak İçin, Uygulamayı Baştan Başlatın Veya İzinler Sekmesine Gidin")
                     .show();
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private BitmapDescriptor getMapPin(Color fillColor) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Drawable vectorDrawable = DrawableHelper
+                                        .withContext(this)
+                                        .withColor(fillColor)
+                                        .withDrawable(R.drawable.ic_map_marker)
+                                        .tint()
+                                        .get();
+            int h = vectorDrawable.getIntrinsicHeight();
+            int w = vectorDrawable.getIntrinsicWidth();
+            vectorDrawable.setBounds(0, 0, w, h);
+            Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bm);
+            vectorDrawable.draw(canvas);
+            return BitmapDescriptorFactory.fromBitmap(bm);
+        }
+
+        return null;
     }
 
     @Override
@@ -99,14 +132,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mMap.clear();
                     for (QueryDocumentSnapshot pinSnapshot : queryDocumentSnapshots) {
                         Map<String, Object> pinVals = pinSnapshot.getData();
-                        LatLng pos = new LatLng((double) pinVals.getOrDefault("lat", 1.0), (double) pinVals.getOrDefault("lng", 1.0));
-                        boolean owned = userID == pinVals.getOrDefault("owner", "-1");
+                        LatLng pos = new LatLng(
+                                (double) pinVals.getOrDefault("lat", 1.0),
+                                (double) pinVals.getOrDefault("lng", 1.0));
 
-                        MarkerOptions options = new MarkerOptions()
-                                .title((String) pinVals.getOrDefault("title", "a"))
-                                .position(pos).draggable(owned);
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            Color pinColor = Color.valueOf(
+                                    (float)pinVals.getOrDefault("red", 0f),
+                                    (float)pinVals.getOrDefault("green", 0f),
+                                    (float)pinVals.getOrDefault("blue", 0f)
+                            );
 
-                        mMap.addMarker(options);
+                            boolean owned = userID == pinVals.getOrDefault("owner", "-1");
+
+                            MarkerOptions options = new MarkerOptions()
+                                    .title((String) pinVals.getOrDefault("title", "a"))
+                                    .position(pos).draggable(owned).icon(getMapPin(pinColor));
+
+                            mMap.addMarker(options);
+                        }
                     }
                 }
             }
@@ -139,8 +183,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             if (pinTitle.isEmpty()) {
                                 return;
                             }
+                            Color usrColor = spService.getColor();
 
-                            PinData newPin = new PinData(pinTitle, location, userID, Color.valueOf(0, 0, 0));
+                            PinData newPin = new PinData(pinTitle, location, userID, usrColor);
 
                             service.addPin(newPin, new OnSuccessListener<DocumentReference>() {
                                 @Override
