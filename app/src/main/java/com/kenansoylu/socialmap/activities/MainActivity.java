@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(auth != null) {
                     auth.signOut();
+                    user = null;
                     nameTxt.setVisibility(View.GONE);
                     nameTxt.setText("");
                     mapButton.setText("Sign In");

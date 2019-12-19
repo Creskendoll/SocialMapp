@@ -1,8 +1,8 @@
 <!--https://commons.wikimedia.org/wiki/File:Map_marker.svg-->
 
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="365dp"
-    android:height="560dp"
+    android:width="45dp"
+    android:height="70dp"
     android:viewportWidth="365"
     android:viewportHeight="560">
   <path

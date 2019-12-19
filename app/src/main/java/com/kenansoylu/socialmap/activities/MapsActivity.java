@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -147,7 +148,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     b.floatValue()
                             );
 
-                            boolean owned = userID == pinVals.getOrDefault("owner", "-1");
+                            String pinOwner = pinVals.getOrDefault("owner", "-1").toString();
+                            boolean owned = userID.equals(pinOwner);
 
                             MarkerOptions options = new MarkerOptions()
                                     .title((String) pinVals.getOrDefault("title", "a"))
@@ -164,14 +166,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             public void onMapLongClick(LatLng latLng) {
                 final LatLng location = latLng;
-                /*
-                MarkerOptions newMo = new MarkerOptions()
-                .position(latLng)
-                .title("Seçtiğiniz Nokta")a
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                .draggable(true);
-                map.addMarker(newMo);
-                */
 
                 final EditText et = new EditText(MapsActivity.this);
                 AlertDialog.Builder adb = new AlertDialog.Builder(MapsActivity.this);
@@ -199,6 +193,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             });
                         }
                     }).show();
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                EditText pinTitle = findViewById(R.id.pinTitle);
+                pinTitle.setVisibility(View.VISIBLE);
+                pinTitle.setText(marker.getTitle());
+                return true;
             }
         });
 
