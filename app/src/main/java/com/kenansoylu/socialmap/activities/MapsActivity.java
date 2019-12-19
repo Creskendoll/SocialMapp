@@ -137,10 +137,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 (double) pinVals.getOrDefault("lng", 1.0));
 
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            Double r = (Double) pinVals.getOrDefault("red", 0d);
+                            Double g = (Double) pinVals.getOrDefault("green", 0d);
+                            Double b = (Double) pinVals.getOrDefault("blue", 0d);
+
                             Color pinColor = Color.valueOf(
-                                    (float)pinVals.getOrDefault("red", 0f),
-                                    (float)pinVals.getOrDefault("green", 0f),
-                                    (float)pinVals.getOrDefault("blue", 0f)
+                                    r.floatValue(),
+                                    g.floatValue(),
+                                    b.floatValue()
                             );
 
                             boolean owned = userID == pinVals.getOrDefault("owner", "-1");
