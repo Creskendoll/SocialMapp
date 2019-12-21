@@ -401,10 +401,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onMarkerDragEnd(Marker marker) {
                 PinData pinData = (PinData) marker.getTag();
 
-                Color usrColor = spService.getColor();
-
                 PinData oldPin = new PinData(pinData.getId(), null, null, null, null);
-                PinData newPin = new PinData(pinData.getId(), pinData.getTitle(), marker.getPosition(), pinData.getOwner(), usrColor);
+                PinData newPin = new PinData(pinData.getId(), pinData.getTitle(), marker.getPosition(), pinData.getOwner(), pinData.getColor());
 
                 service.updatePin(oldPin, newPin, new OnSuccessListener<Void>() {
                     @Override
