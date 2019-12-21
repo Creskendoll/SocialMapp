@@ -15,22 +15,103 @@
         android:layout_height="match_parent"
         app:layout_constraintBottom_toTopOf="@+id/pinTitle" />
 
+
+    <Button
+        android:id="@+id/colorBtn"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:height="30dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/round_button_blue"
+        android:text="Change Default Color"
+        android:textAlignment="center"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/map" />
+
+
+    <Button
+        android:id="@+id/deleteBtn"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:height="30dp"
+        android:background="@drawable/round_button_red"
+        android:text="Delete"
+        android:layout_marginBottom="5dp"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/ownerText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.1"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
+
+    <Button
+        android:id="@+id/updateBtn"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:height="30dp"
+        android:background="@drawable/round_button_blue"
+        android:text="Update"
+        android:textAlignment="center"
+        android:layout_marginBottom="5dp"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/ownerText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/ownerText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/pin_field"
+        android:height="50dp"
+        tools:text="KENAN"
+        android:textAlignment="center"
+        android:textSize="30sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/deleteBtn"
+        app:layout_constraintBottom_toTopOf="@+id/pinTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <EditText
         android:id="@+id/pinTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="bottom"
-        tools:visibility="visible"
-        android:textAlignment="center"
-        android:background="@color/fui_bgGitHub"
         android:visibility="gone"
+        android:background="@drawable/pin_field"
+        tools:visibility="visible"
+        android:textColor="@android:color/black"
+        android:textAlignment="center"
+        android:textSize="30sp"
         android:height="50dp"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toEndOf="@+id/map"
-        app:layout_constraintStart_toStartOf="@+id/map"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.9"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/ownerText"
+        app:layout_constraintTop_toTopOf="@id/pinColor"
         tools:text="TITLE" />
+
+    <TextView
+        android:id="@+id/pinColor"
+        android:textAlignment="center"
+        android:textSize="40sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:background="#AAA" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

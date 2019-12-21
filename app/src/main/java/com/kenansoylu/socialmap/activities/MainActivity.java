@@ -11,9 +11,13 @@ import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.kenansoylu.socialmap.R;
+import com.kenansoylu.socialmap.data.UserData;
+import com.kenansoylu.socialmap.services.DBService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-                MainActivity.this.startActivity(settingsIntent );
+                MainActivity.this.startActivity(settingsIntent);
             }
         });
 
@@ -94,8 +98,7 @@ public class MainActivity extends AppCompatActivity {
     private void signIn() {
         // Choose authentication providers
         List<AuthUI.IdpConfig> providers = Arrays.asList(
-                new AuthUI.IdpConfig.EmailBuilder().build(),
-                new AuthUI.IdpConfig.GoogleBuilder().build());
+                new AuthUI.IdpConfig.EmailBuilder().build());
 
         // Create and launch sign-in intent
         startActivityForResult(
@@ -115,10 +118,21 @@ public class MainActivity extends AppCompatActivity {
 
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
-                mapButton.setText("Map");
-                settingsButton.setVisibility(View.VISIBLE);
-                signOutButton.setVisibility(View.VISIBLE);
                 user = FirebaseAuth.getInstance().getCurrentUser();
+
+                if(user != null) {
+                    final UserData userData = new UserData(user.getUid(), user.getDisplayName());
+                    new DBService().addUser(userData, new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void v) {
+                            mapButton.setText("Map");
+                            nameTxt.setVisibility(View.VISIBLE);
+                            nameTxt.setText(userData.getName());
+                            settingsButton.setVisibility(View.VISIBLE);
+                            signOutButton.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
             } else {
                 // Sign in failed.
                 Toast.makeText(this, "Sign in cancelled", Toast.LENGTH_SHORT).show();

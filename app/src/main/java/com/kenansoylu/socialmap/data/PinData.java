@@ -15,8 +15,10 @@ public class PinData {
     private String title;
     private Color color;
     private String owner;
+    private String id;
 
-    public PinData(String title, LatLng location, String owner, Color color) {
+    public PinData(String id, String title, LatLng location, String owner, Color color) {
+        this.id = id;
         this.title = title;
         this.location = location;
         this.owner = owner;
@@ -53,6 +55,14 @@ public class PinData {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

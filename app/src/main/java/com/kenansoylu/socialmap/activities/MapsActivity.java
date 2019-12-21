@@ -9,38 +9,56 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.data.model.User;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.kenansoylu.socialmap.R;
 import com.kenansoylu.socialmap.data.PinData;
+import com.kenansoylu.socialmap.data.UserData;
 import com.kenansoylu.socialmap.misc.DrawableHelper;
 import com.kenansoylu.socialmap.services.DBService;
 import com.kenansoylu.socialmap.services.SPService;
+
+import org.w3c.dom.Text;
 
 import java.util.Map;
 
@@ -53,6 +71,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final int LOCATION_PERMISSION = 10;
     private String userID;
     private SPService spService;
+    private PinData selectedPin = null;
+    private EditText pinTitleTxt;
+
+
+    private boolean pinDrawerOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +89,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         spService = new SPService(getApplicationContext());
 
         userID = getIntent().getStringExtra("user_id");
+
+        findViewById(R.id.colorBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingsIntent = new Intent(MapsActivity.this, SettingsActivity.class);
+                MapsActivity.this.startActivity(settingsIntent);
+            }
+        });
+
+        pinTitleTxt = findViewById(R.id.pinTitle);
+        pinTitleTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                Button updateBtn = findViewById(R.id.updateBtn);
+                updateBtn.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        findViewById(R.id.updateBtn).setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(View v) {
+            if (selectedPin != null) {
+                PinData newPin = new PinData(selectedPin.getId(), pinTitleTxt.getText().toString(), selectedPin.getLocation(), selectedPin.getOwner(), selectedPin.getColor());
+                new DBService().updatePin(selectedPin, newPin, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(MapsActivity.this, "Pin Updated", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (pinDrawerOpen) {
+            hidePinData();
+        } else {
+            finish();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private Color getContrastColor(Color color) {
+        return color.luminance() >= 0.5 ? Color.valueOf(0, 0, 0) : Color.valueOf(1, 1, 1);
     }
 
     @Override
@@ -74,11 +144,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int permFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (permCoarse == PackageManager.PERMISSION_GRANTED && permFine == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-        } else {
-            AlertDialog.Builder adb = new AlertDialog.Builder(MapsActivity.this);
-            adb.setTitle("Location Disabled")
-                    .setMessage("Konum Hizmetini Açmak İçin, Uygulamayı Baştan Başlatın Veya İzinler Sekmesine Gidin")
-                    .show();
+
+            // https://stackoverflow.com/questions/18425141/android-google-maps-api-v2-zoom-to-current-location
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+
+            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            if (location != null)
+            {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                        .zoom(10)                   // Sets the zoom
+                        .build();                   // Creates a CameraPosition from the builder
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
+        }else{
+            Toast.makeText(MapsActivity.this, "Location not enabled!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -86,11 +169,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BitmapDescriptor getMapPin(Color fillColor) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Drawable vectorDrawable = DrawableHelper
-                                        .withContext(this)
-                                        .withColor(fillColor)
-                                        .withDrawable(R.drawable.ic_map_marker)
-                                        .tint()
-                                        .get();
+                    .withContext(this)
+                    .withColor(fillColor)
+                    .withDrawable(R.drawable.ic_map_marker)
+                    .tint()
+                    .get();
             int h = vectorDrawable.getIntrinsicHeight();
             int w = vectorDrawable.getIntrinsicWidth();
             vectorDrawable.setBounds(0, 0, w, h);
@@ -103,6 +186,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
+    private void hidePinData() {
+        final EditText pinTitle = findViewById(R.id.pinTitle);
+        final TextView pinOwner = findViewById(R.id.ownerText);
+        final TextView pinColor = findViewById(R.id.pinColor);
+
+        pinTitle.setVisibility(View.GONE);
+        pinOwner.setVisibility(View.GONE);
+        pinColor.setVisibility(View.GONE);
+        findViewById(R.id.deleteBtn).setVisibility(View.GONE);
+
+        selectedPin = null;
+        pinDrawerOpen = false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -120,9 +218,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         } else {
             mMap.setMyLocationEnabled(true);
-
-//            mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         }
 
         service.subscribeToPins(new EventListener<QuerySnapshot>() {
@@ -150,19 +245,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                             String pinOwner = pinVals.getOrDefault("owner", "-1").toString();
                             boolean owned = userID.equals(pinOwner);
+                            String title = (String) pinVals.getOrDefault("title", "");
+                            PinData pinData = new PinData(pinSnapshot.getId(), title, pos, pinOwner, pinColor);
 
                             MarkerOptions options = new MarkerOptions()
-                                    .title((String) pinVals.getOrDefault("title", "a"))
+                                    .title(pinData.getTitle())
                                     .position(pos).draggable(owned).icon(getMapPin(pinColor));
 
-                            mMap.addMarker(options);
+                            mMap.addMarker(options).setTag(pinData);
                         }
                     }
                 }
             }
         });
 
-        // OnLongClick Listener
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             public void onMapLongClick(LatLng latLng) {
                 final LatLng location = latLng;
@@ -183,12 +279,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                             Color usrColor = spService.getColor();
 
-                            PinData newPin = new PinData(pinTitle, location, userID, usrColor);
+                            PinData newPin = new PinData(null, pinTitle, location, userID, usrColor);
 
                             service.addPin(newPin, new OnSuccessListener<DocumentReference>() {
                                 @Override
                                 public void onSuccess(DocumentReference documentReference) {
-                                    Toast.makeText(MapsActivity.this, "Pin Added", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MapsActivity.this, "Pin Added", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -197,11 +293,95 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public boolean onMarkerClick(Marker marker) {
-                EditText pinTitle = findViewById(R.id.pinTitle);
-                pinTitle.setVisibility(View.VISIBLE);
-                pinTitle.setText(marker.getTitle());
+                final PinData pinData = (PinData)marker.getTag();
+                selectedPin = pinData;
+                new DBService().getUser(pinData.getOwner(), new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            final DocumentSnapshot document = task.getResult();
+                            if(document.exists()) {
+                                pinDrawerOpen = true;
+
+                                final boolean owned = userID.equals(pinData.getOwner());
+
+                                final EditText pinTitle = findViewById(R.id.pinTitle);
+                                final TextView pinOwner = findViewById(R.id.ownerText);
+                                final TextView pinColor = findViewById(R.id.pinColor);
+                                final Button deleteBtn = findViewById(R.id.deleteBtn);
+
+                                pinTitle.setVisibility(View.VISIBLE);
+                                pinTitle.setEnabled(owned);
+                                pinOwner.setVisibility(View.VISIBLE);
+                                pinColor.setVisibility(View.VISIBLE);
+
+                                if(owned) {
+                                    pinTitle.setBackgroundColor(Color.valueOf(0.68f,0.847f,0.90f).toArgb());
+                                    deleteBtn.setVisibility(View.VISIBLE);
+                                    deleteBtn.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            AlertDialog.Builder adb = new AlertDialog.Builder(MapsActivity.this);
+                                            adb.setTitle("Delete?").setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                                @RequiresApi(api = Build.VERSION_CODES.O)
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.dismiss();
+                                                    new DBService().deletePin(pinData.getId(), new OnCompleteListener() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task task) {
+                                                            hidePinData();
+
+                                                            Toast.makeText(MapsActivity.this, "Pin Deleted!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                }
+                                            }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            }).show();
+                                        }
+                                    });
+
+                                    pinColor.setText("Change Color");
+                                }else{
+                                    pinTitle.setBackgroundColor(Color.valueOf(1f,1f,1f).toArgb());
+                                    deleteBtn.setVisibility(View.GONE);
+                                    pinColor.setText("");
+                                }
+
+                                pinColor.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if(owned){
+                                            hidePinData();
+                                            Intent settingsIntent = new Intent(MapsActivity.this, SettingsActivity.class);
+                                            settingsIntent.putExtra("pin_id", pinData.getId());
+                                            MapsActivity.this.startActivity(settingsIntent);
+                                        }
+                                    }
+                                });
+
+                                pinColor.setBackgroundColor(pinData.getColor().toArgb());
+                                pinColor.setTextColor(getContrastColor(pinData.getColor()).toArgb());
+
+                                pinTitle.setText(pinData.getTitle());
+
+                                UserData userData = new UserData((String)document.get("id"), (String)document.get("name"));
+                                pinOwner.setText("Owner: " + userData.getName());
+                            }else{
+                                Log.d("MAPS", "doesnt exist");
+                            }
+                        }else{
+                            Log.d("MAPS", "Unsuccessfull");
+                        }
+                    }
+                });
                 return true;
             }
         });
@@ -210,18 +390,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
-                Log.e("x", "Started @" + marker.getPosition());
             }
 
             @Override
             public void onMarkerDrag(Marker marker) {
-                Log.e("x", "Currently @" + marker.getPosition());
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                Log.e("x", "Dropped @" + marker.getPosition());
+                PinData pinData = (PinData) marker.getTag();
+
+                Color usrColor = spService.getColor();
+
+                PinData oldPin = new PinData(pinData.getId(), null, null, null, null);
+                PinData newPin = new PinData(pinData.getId(), pinData.getTitle(), marker.getPosition(), pinData.getOwner(), usrColor);
+
+                service.updatePin(oldPin, newPin, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(MapsActivity.this, "Pin Updated", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    MapsActivity.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION);
+            return;
+        }
+
+        // https://stackoverflow.com/questions/18425141/android-google-maps-api-v2-zoom-to-current-location
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+
+        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        if (location != null)
+        {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                    .zoom(10)                   // Sets the zoom
+//                    .bearing(90)                // Sets the orientation of the camera to east
+//                    .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
     }
 }

@@ -39,10 +39,10 @@
         android:layout_margin="10dp"
         android:width="200dp"
         android:height="80dp"
-        android:visibility="gone"
-        tools:visibility="visible"
         android:background="@drawable/round_button_blue"
-        android:text="Settings"/>
+        android:text="Default Color"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <Button
         android:id="@+id/signOutBtn"

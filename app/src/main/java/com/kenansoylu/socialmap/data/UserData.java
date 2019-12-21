@@ -1,10 +1,12 @@
 package com.kenansoylu.socialmap.data;
 
-public class UserData {
+import java.io.Serializable;
+
+public class UserData implements Serializable {
     private String name;
     private String id;
 
-    public UserData(String name, String id) {
+    public UserData(String id, String name) {
         this.name = name;
         this.id = id;
     }

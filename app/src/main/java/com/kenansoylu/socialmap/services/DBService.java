@@ -12,6 +12,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.kenansoylu.socialmap.data.PinData;
+import com.kenansoylu.socialmap.data.UserData;
 
 public class DBService {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -29,7 +30,24 @@ public class DBService {
         db.collection("pins").add(pin.serialize()).addOnSuccessListener(successListener);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void updatePin(PinData oldPin, PinData newPin, OnSuccessListener<Void> successListener) {
+        db.collection("pins").document(oldPin.getId()).set(newPin.serialize()).addOnSuccessListener(successListener);
+    }
+
+    public void addUser(UserData user, OnSuccessListener<Void> successListener) {
+        db.collection("users").document(user.getId()).set(user).addOnSuccessListener(successListener);
+    }
+
     public void getUser(String id, OnCompleteListener<DocumentSnapshot> onCompleteListener) {
         db.collection("users").document(id).get().addOnCompleteListener(onCompleteListener);
+    }
+
+    public void getPin(String id, OnCompleteListener<DocumentSnapshot> onCompleteListener) {
+        db.collection("pins").document(id).get().addOnCompleteListener(onCompleteListener);
+    }
+
+    public void deletePin(String id, OnCompleteListener onCompleteListener) {
+        db.collection("pins").document(id).delete().addOnCompleteListener(onCompleteListener);
     }
 }
