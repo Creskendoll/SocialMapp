@@ -21,7 +21,7 @@
             android:layout_margin="20dp"
             android:textSize="20sp"
             android:gravity="center"
-            android:text="Pick default marker color" />
+            android:text="Pick a default marker color" />
 
         <com.skydoves.colorpickerview.ColorPickerView
             android:id="@+id/colorPickerView"
