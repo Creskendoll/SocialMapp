@@ -259,6 +259,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if(pinDrawerOpen)
+                    hidePinData();
+            }
+        });
+
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             public void onMapLongClick(LatLng latLng) {
                 final LatLng location = latLng;
@@ -298,9 +306,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public boolean onMarkerClick(Marker marker) {
                 final PinData pinData = (PinData)marker.getTag();
                 selectedPin = pinData;
+                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                 new DBService().getUser(pinData.getOwner(), new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
                         if(task.isSuccessful()) {
                             final DocumentSnapshot document = task.getResult();
                             if(document.exists()) {
